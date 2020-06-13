@@ -10,7 +10,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 	Dialog.addChoice("DAPI: ", newArray("C1-", "C2-", "C3-", "C4-", "C5-", "C6-", "not used"),"C3-");
 //	Dialog.addChoice("Dataset: ", newArray("PARP", "PCNA"),"PARP");
 	Dialog.addCheckbox("use batch mode ", false);
-	Dialog.addCheckbox("remove speckles", false);
+	Dialog.addCheckbox("remove speckles", true);
 	Dialog.addCheckbox("remove unfocused slices", true);
 //	Dialog.addCheckbox("Save QC images", false);
 //	Dialog.addString("name output file: ", "");
@@ -97,6 +97,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 				selectWindow(""+tum+""+title1+"");
 				Stack.getDimensions(width, height, channels, slices, frames);
 				s = s - 1;
+				slices = slices;
 			    }else {
 //			    	waitForUser("nodel as std= "+std+"");
 					print("nodel");	
@@ -110,7 +111,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			selectWindow(""+mark+""+title1+"");
 			setOption("BlackBackground", true);
 			run("Convert to Mask", "method=MaxEntropy background=Dark calculate black");
-			run("Analyze Particles...", "size=0-5 add stack");
+			run("Analyze Particles...", "size=1-5 add stack");
 			ROIc = roiManager("count");
 			if (ROIc!=0) {
 				while (ROIc!=0) {

@@ -85,8 +85,8 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			setSlice(s);
 			getRawStatistics(nPixels, mean, min, max, std, histogram);
 			print("slice "+s+" std= "+std+"");
-			if (std <= 18.5) {
-			//	waitForUser("isdel");
+			if (std <= 17.5) {
+//				waitForUser("isdel as std= "+std+"");
 				print("del");
 				sn++;
 				run("Delete Slice");
@@ -94,22 +94,23 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 				Stack.getDimensions(width, height, channels, slices, frames);
 				setSlice(s);
 				run("Delete Slice");
-				s = s - 1;
 				selectWindow(""+tum+""+title1+"");
 				Stack.getDimensions(width, height, channels, slices, frames);
+				s = s - 1;
 			    }else {
-			    	//waitForUser("nodel as std= "+std+"");
+//			    	waitForUser("nodel as std= "+std+"");
 					print("nodel");	
 			    }
 			s++;
 			}
+			print("_");
 			print("deleted "+sn+" out of focus slices"); 
 		}
 		if(defrench==true){
 			selectWindow(""+mark+""+title1+"");
 			setOption("BlackBackground", true);
 			run("Convert to Mask", "method=MaxEntropy background=Dark calculate black");
-			run("Analyze Particles...", "size=0-4 add stack");
+			run("Analyze Particles...", "size=0-5 add stack");
 			ROIc = roiManager("count");
 			if (ROIc!=0) {
 				while (ROIc!=0) {
@@ -136,9 +137,9 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			roiManager("Measure");
 			roiManager("Show None");
 			roiManager("Show All");
-			waitForUser("Measured");
+//			waitForUser("Measured");
 //		}else if (Dat=="PCNA"){
-		////////////////////////////////////////////////////////	
+//		//alternative tresholding?
 //		}
 		print("saving results to "+Resdir+title1+".xls");
 		selectWindow("Results");

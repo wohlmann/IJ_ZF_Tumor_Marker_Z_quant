@@ -58,6 +58,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 //			if (!File.exists(QCdir))
 //				exit("Unable to create directory - check permissions");
 //	}
+	print("_");
 	if (batch==true){
 		setBatchMode(true);
 		print("running in batch mode");
@@ -85,39 +86,52 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			while (s <= slices) {
 			setSlice(s);
 			getRawStatistics(nPixels, mean, min, max, std, histogram);
-			print("slice "+s+" std= "+std+"");
-			if (std <= 17.5) {								//18.5 works well for parp - alternative for PCNA??
+//			print("slice "+s+" std= "+std+"");
+			if (std <= 12.5) {								//18.5 works well for parp - alternative for PCNA??
 //				waitForUser("isdel as std= "+std+"");
-				print("del");
+//				print("del");
 				sn++;
 				run("Delete Slice");
 				selectWindow(""+mark+""+title1+"");
 				Stack.getDimensions(width, height, channels, slices, frames);
+				wait(100);
 				setSlice(s);
 				run("Delete Slice");
 				selectWindow(""+tum+""+title1+"");
 				Stack.getDimensions(width, height, channels, slices, frames);
-				s = s - 1;
+//				s = s - 1;
+				s--;
 				slices = slices;
 			    }else {
 //			    	waitForUser("nodel as std= "+std+"");
-					print("nodel");	
+//					print("nodel");	
 			    }
 			s++;
 			}
-			print("_");
+//			print("_");
 			print("deleted "+sn+" out of "+si+" focus slices"); 
 		}
 		if(defrench==true){
-			selectWindow(""+mark+""+title1+"");
+			print("removing specles");
 			setOption("BlackBackground", true);
-			run("Convert to Mask", "method=MaxEntropy background=Dark calculate black");
-			run("Analyze Particles...", "size=1-5 add stack");
+			selectWindow(""+mark+""+title1+"");
+			run("Enhance Contrast", "saturated=0.35");
+			run("Duplicate...", "duplicate");
+			titleD= getTitle;
+			selectWindow(titleD);
+			wait(500);
+//			run("Convert to Mask", "method=MaxEntropy background=Dark calculate black"); //WORKS FOR PARP
+			run("Convert to Mask", "Triangle background=Dark calculate black");
+			run("Analyze Particles...", "size=1-80 include add stack");
+			selectWindow(""+mark+""+title1+"");
+			wait(500);
 			ROIc = roiManager("count");
+			spec=ROIc;
 			if (ROIc!=0) {
 				while (ROIc!=0) {
+					roiManager("Show None");
 					roiManager("select", 0);
-					run("Enhance Contrast", "saturated=0.35");
+					run("Enlarge...", "enlarge=1");
 					run("Clear", "slice");
 					roiManager("select", 0);
 					roiManager("delete");
@@ -125,6 +139,8 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 				}
 			}
 			roiManager("reset");
+			print("deleted "+spec+" specles");
+			waitForUser("despec");
 		}
 //		if(Dat=="PARP"){
 			selectWindow(""+tum+""+title1+"");

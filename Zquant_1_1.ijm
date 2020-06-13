@@ -79,13 +79,14 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			selectWindow(""+tum+""+title1+"");
 			run("Enhance Contrast", "saturated=0.35");
 			Stack.getDimensions(width, height, channels, slices, frames);
+			si = slices;
 			s = 1;
 			sn = 0;
 			while (s <= slices) {
 			setSlice(s);
 			getRawStatistics(nPixels, mean, min, max, std, histogram);
 			print("slice "+s+" std= "+std+"");
-			if (std <= 17.5) {
+			if (std <= 17.5) {								//18.5 works well for parp - alternative for PCNA??
 //				waitForUser("isdel as std= "+std+"");
 				print("del");
 				sn++;
@@ -105,7 +106,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			s++;
 			}
 			print("_");
-			print("deleted "+sn+" out of focus slices"); 
+			print("deleted "+sn+" out of "+si+" focus slices"); 
 		}
 		if(defrench==true){
 			selectWindow(""+mark+""+title1+"");

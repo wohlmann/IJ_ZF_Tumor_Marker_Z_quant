@@ -122,7 +122,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			wait(500);
 //			run("Convert to Mask", "method=MaxEntropy background=Dark calculate black"); //WORKS FOR PARP
 			run("Convert to Mask", "Triangle background=Dark calculate black");
-			run("Analyze Particles...", "size=1-80 include add stack");
+			run("Analyze Particles...", "size=1-30 include add stack");
 			selectWindow(""+mark+""+title1+"");
 			wait(500);
 			ROIc = roiManager("count");
@@ -137,6 +137,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 					roiManager("delete");
 					ROIc = roiManager("count");
 				}
+				//second round with different tresholding???
 			}
 			roiManager("reset");
 			print("deleted "+spec+" specles");

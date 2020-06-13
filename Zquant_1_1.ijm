@@ -8,17 +8,17 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 	Dialog.addChoice("tumor: ", newArray("C1-", "C2-", "C3-", "C4-", "C5-", "C6-", "not used"),"C1-");
 	Dialog.addChoice("marker: ", newArray("C1-", "C2-", "C3-", "C4-", "C5-", "C6-", "not used"),"C2-");
 	Dialog.addChoice("DAPI: ", newArray("C1-", "C2-", "C3-", "C4-", "C5-", "C6-", "not used"),"C3-");
-	Dialog.addChoice("Dataset: ", newArray("PARP", "PCNA"),"PARP");
+//	Dialog.addChoice("Dataset: ", newArray("PARP", "PCNA"),"PARP");
 	Dialog.addCheckbox("use batch mode ", false);
 	Dialog.addCheckbox("remove speckles", false);
-	Dialog.addCheckbox("remove unfocused slices", false);
+	Dialog.addCheckbox("remove unfocused slices", true);
 //	Dialog.addCheckbox("Save QC images", false);
 //	Dialog.addString("name output file: ", "");
 	Dialog.show();
 	tum=Dialog.getChoice();
 	mark=Dialog.getChoice();
 	DAP=Dialog.getChoice();
-	Dat=Dialog.getChoice();
+//	Dat=Dialog.getChoice();
 	batch = Dialog.getCheckbox();
 	defrench = Dialog.getCheckbox();
 	deitaly	= Dialog.getCheckbox();
@@ -80,6 +80,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			run("Enhance Contrast", "saturated=0.35");
 			Stack.getDimensions(width, height, channels, slices, frames);
 			s = 1;
+			sn = 0;
 			while (s <= slices) {
 			setSlice(s);
 			getRawStatistics(nPixels, mean, min, max, std, histogram);
@@ -87,6 +88,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			if (std <= 18.5) {
 			//	waitForUser("isdel");
 				print("del");
+				sn++;
 				run("Delete Slice");
 				selectWindow(""+mark+""+title1+"");
 				Stack.getDimensions(width, height, channels, slices, frames);
@@ -101,6 +103,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			    }
 			s++;
 			}
+			print("deleted "+sn+" out of focus slices"); 
 		}
 		if(defrench==true){
 			selectWindow(""+mark+""+title1+"");
@@ -120,7 +123,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			}
 			roiManager("reset");
 		}
-		if(Dat=="PARP"){
+//		if(Dat=="PARP"){
 			selectWindow(""+tum+""+title1+"");
 			setOption("BlackBackground", true);
 			run("Convert to Mask", "method=Otsu background=Dark calculate black");
@@ -134,9 +137,9 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			roiManager("Show None");
 			roiManager("Show All");
 			waitForUser("Measured");
-		}else if (Dat=="PCNA"){
+//		}else if (Dat=="PCNA"){
 		////////////////////////////////////////////////////////	
-		}
+//		}
 		print("saving results to "+Resdir+title1+".xls");
 		selectWindow("Results");
 		saveAs("txt", Resdir+title1+".xls");

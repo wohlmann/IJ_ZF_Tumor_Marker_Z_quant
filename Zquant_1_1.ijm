@@ -8,6 +8,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 	Dialog.addChoice("tumor: ", newArray("C1-", "C2-", "C3-", "C4-", "C5-", "C6-", "not used"),"C1-");
 	Dialog.addChoice("marker: ", newArray("C1-", "C2-", "C3-", "C4-", "C5-", "C6-", "not used"),"C2-");
 	Dialog.addChoice("DAPI: ", newArray("C1-", "C2-", "C3-", "C4-", "C5-", "C6-", "not used"),"C3-");
+	Dialog.addChoice("Tumor Thresholding Method: ", newArray("Default", "Huang", "Intermodes", "IsoData", "IJ_IsoData", "Li", "MaxEntropy", "Mean", "MinError", "Minimum", "Moments", "Otsu", "Percentile", "RenyiEntropy", "Shanbhag", "Triangle", "Yen"), "Otsu");
 //	Dialog.addChoice("Dataset: ", newArray("PARP", "PCNA"),"PARP");
 	Dialog.addCheckbox("use batch mode ", false);
 	Dialog.addCheckbox("remove speckles", true);
@@ -19,6 +20,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 	tum = Dialog.getChoice();
 	mark = Dialog.getChoice();
 	DAP = Dialog.getChoice();
+	TRm = Dialog.getChoice();								
 //	Dat=Dialog.getChoice();
 	batch = Dialog.getCheckbox();
 	defrench = Dialog.getCheckbox();
@@ -152,29 +154,30 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			run("Set Measurements...", "area mean integrated redirect=None decimal=1");
 			selectWindow(""+tum+""+title1+"");
 			run("Duplicate...", "duplicate");
+			roiManager("reset");
 			setOption("BlackBackground", true);
-			
-			//////////////////change Tresholding here
-			run("Convert to Mask", "method=Otsu background=Dark calculate black");
-			//////////////////change Tresholding here
-			
+			run("Convert to Mask", "method="+TRm+" background=Dark calculate black");
 			run("Analyze Particles...", "size=100.00-infinity add stack");
 			selectWindow(""+tum+""+title1+"");
 			run("Enhance Contrast", "saturated=0.35");
 //			waitForUser("ROI ok?");
 			if(mROI==true){
-				nROI = parseInt(roiManager("count"));
+				delROI=0;
+				aROI=nROI = parseInt(roiManager("count"));
+				print("detected "+nROI+" tumor areas");
 				for (i=0; i<nROI; i++) {
 					roiManager("deselect");
 					roiManager("Show None");
 					roiManager("Select", i);
-					delR = getBoolean("Use selection for analysis?", "Yes", "No, delete");
-						if(delR==true){
+					delR = getBoolean("Use selection for analysis?", "Yes [Y-button]", "No, delete [N-button]");
+						if(delR==false){
 							roiManager("delete");
+							delROI++;
 							nROI = (roiManager("count"));
+							i--;
 						}
 				}
-
+				print("manual selection: using "+aROI-delROI+" out of "+aROI+" tumor areas for analysis");
 			}
 			selectWindow(""+mark+""+title1+"");
 			roiManager("Select", newArray());

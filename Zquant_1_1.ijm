@@ -254,5 +254,6 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 		selectImage(nImages);
 		close();
 		}
+		roiManager("reset");
 	}
 }

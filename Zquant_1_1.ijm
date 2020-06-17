@@ -11,7 +11,11 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 	Dialog.addChoice("Tumor Thresholding Method: ", newArray("Default", "Huang", "Intermodes", "IsoData", "IJ_IsoData", "Li", "MaxEntropy", "Mean", "MinError", "Minimum", "Moments", "Otsu", "Percentile", "RenyiEntropy", "Shanbhag", "Triangle", "Yen"), "Otsu");
 //	Dialog.addChoice("Dataset: ", newArray("PARP", "PCNA"),"PARP");
 	Dialog.addCheckbox("use batch mode ", false);
-	Dialog.addCheckbox("remove speckles", true);
+	Dialog.addCheckbox("remove all speckles", false);
+	Dialog.addCheckbox("remove only ROI speckles", true);
+	Dialog.addChoice("Speckle Thresholding Method: ", newArray("Default", "Huang", "Intermodes", "IsoData", "IJ_IsoData", "Li", "MaxEntropy", "Mean", "MinError", "Minimum", "Moments", "Otsu", "Percentile", "RenyiEntropy", "Shanbhag", "Triangle", "Yen"), "Triangle");
+	Dialog.addSlider("specle size", 1, 300, 30);
+	Dialog.addSlider("specle enlargement", 1, 50, 1);
 	Dialog.addCheckbox("remove unfocused slices", true);
 	Dialog.addCheckbox("manually check cell selection", false);
 //	Dialog.addCheckbox("Save QC images", false);
@@ -24,6 +28,9 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 //	Dat=Dialog.getChoice();
 	batch = Dialog.getCheckbox();
 	defrench = Dialog.getCheckbox();
+	specROI = Dialog.getCheckbox();
+	specS = Dialog.getNumber();
+	specENL = Dialog.getNumber();
 	deitaly	= Dialog.getCheckbox();
 	mROI = Dialog.getCheckbox();
 //	QC = Dialog.getCheckbox();
@@ -129,8 +136,8 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			selectWindow(titleD);
 			wait(500);
 //			run("Convert to Mask", "method=MaxEntropy background=Dark calculate black"); //WORKS FOR PARP
-			run("Convert to Mask", "Triangle background=Dark calculate black");
-			run("Analyze Particles...", "size=1-30 include add stack");
+			run("Convert to Mask", ""+specROI+" background=Dark calculate black");
+			run("Analyze Particles...", "size=1-"+specS+" include add stack");
 			selectWindow(""+mark+""+title1+"");
 			wait(500);
 			ROIc = roiManager("count");
@@ -139,7 +146,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 				while (ROIc!=0) {
 					roiManager("Show None");
 					roiManager("select", 0);
-					run("Enlarge...", "enlarge=1");
+					run("Enlarge...", "enlarge="+specENL+"");
 					run("Clear", "slice");
 					roiManager("select", 0);
 					roiManager("delete");
@@ -149,7 +156,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			}
 			roiManager("reset");
 			print("deleted "+spec+" specles");
-//			waitForUser("despec");
+			waitForUser("despecling done");
 		}
 //		if(Dat=="PARP"){
 			run("Set Measurements...", "area mean integrated redirect=None decimal=1");
@@ -181,6 +188,52 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 				print("manual selection: using "+aROI-delROI+" out of "+aROI+" tumor areas for analysis");
 			}
 			selectWindow(""+mark+""+title1+"");
+			if(specROI==true){
+				despecROI=0;
+				despecaROI=tumROI = parseInt(roiManager("count"));
+				setOption("BlackBackground", true);
+				selectWindow(""+mark+""+title1+"");
+				run("Enhance Contrast", "saturated=0.35");
+				run("Duplicate...", "duplicate");
+				titleD= getTitle;
+				selectWindow(titleD);
+				print("deleting specles only in "+tumROI+" tumor areas");
+				for (i=0; i<tumROI; i++) {
+					roiManager("deselect");
+					roiManager("Show None");
+					roiManager("Select", i);
+					run("Clear Outside", "slice");
+					roiManager("deselect");
+					roiManager("Show None");
+//					wait(500);
+				}
+				selectWindow(titleD);
+				run("Convert to Mask", ""+specROI+" background=Dark calculate black");
+				print("masked");
+				run("Analyze Particles...", "size=1-"+specS+" include add stack");
+				despecROI= parseInt(roiManager("count"));
+					selectWindow(""+mark+""+title1+"");
+//					wait(500);
+					for (i = tumROI+1; i < despecROI; i++) {
+						roiManager("Show None");
+						roiManager("select", i);
+						run("Enlarge...", "enlarge="+specENL+"");
+						run("Clear", "slice");
+						roiManager("select", i);
+						roiManager("delete");
+						despecROI--;
+					}
+						//second round with different tresholding???			
+					//delR = getBoolean("Use selection for analysis?", "Yes [Y-button]", "No, delete [N-button]");
+					//	if(delR==false){
+					//		roiManager("delete");
+					//		delROI++;
+					//		depsecnROI = (roiManager("count"));
+					//		i--;
+					//	}
+				//}
+				print("deleted "+despecaROI+" specles in "+tumROI+" areas");
+			}
 			roiManager("Select", newArray());
 			run("Enhance Contrast", "saturated=0.35");
 			roiManager("Measure");

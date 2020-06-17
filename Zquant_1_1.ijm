@@ -1,4 +1,5 @@
 macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
+	setOption("ExpandableArrays", true);
 	dir1 = getDirectory("Please choose source directory ");
 	list1 = getFileList(dir1);
 	dir2 = getDirectory("_Please choose destination directory ");
@@ -137,7 +138,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 			wait(500);
 //			run("Convert to Mask", "method=MaxEntropy background=Dark calculate black"); //WORKS FOR PARP
 			run("Convert to Mask", ""+specROI+" background=Dark calculate black");
-			run("Analyze Particles...", "size=1-"+specS+" include add stack");
+			run("Analyze Particles...", "size=0.5-"+specS+" include add stack");
 			selectWindow(""+mark+""+title1+"");
 			wait(500);
 			ROIc = roiManager("count");
@@ -187,10 +188,68 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 				}
 				print("manual selection: using "+aROI-delROI+" out of "+aROI+" tumor areas for analysis");
 			}
+			//combine rois of same slice
+			comROI = (roiManager("count"));
+			same = newArray(0);
+			ist1=1;
+			slen=0;
+			for (i=0; i<comROI; i++) {
+//				print("start");
+//				Array.print(same);
+//				print("slen="+slen+"");
+				roiManager("deselect");
+				roiManager("Show None");
+				roiManager("Select", i);
+				ist=parseInt(substring(Roi.getName, 1, 4));
+//				print("ist= "+ist+" =? "+ist1+"");
+				if(ist==ist1){
+					same[i]=parseInt(i);
+					slen=same.length;
+//					print("assign");
+//					Array.print(same);
+//					print("slen="+slen+"");
+				}
+				else if ((ist!=ist1)&&(slen>=2)) {
+					roiManager("select", same);
+					roiManager("combine"); 
+					roiManager("Add");
+					roiManager("deselect");
+					roiManager("select", same);
+					roiManager("delete");
+					roiManager("deselect");
+					i=0;
+					same = newArray(0);
+					same[0]=0;
+					slen=same.length;
+//					print("after fuse");
+//					Array.print(same);
+//					print("slen="+slen+"");
+					ist1++;
+					comROI = (roiManager("count"));
+				}
+				else if((ist>ist1)&&(slen<2)){
+					roiManager("select", 0);
+					roiManager("Add");
+					roiManager("deselect");
+					roiManager("select", 0);
+					roiManager("delete");
+					roiManager("deselect");
+					i=0;
+					ist1++;
+					same = newArray(0);
+					same[0]=0;
+					slen=same.length;
+//					Array.print(same);
+//					print("slen="+slen+"");
+				}
+			}
+			roiManager("deselect");
+			roiManager("Show None");	
 			selectWindow(""+mark+""+title1+"");
 			if(specROI==true){
 				despecROI=0;
 				despecaROI=tumROI = parseInt(roiManager("count"));
+//				waitForUser("start?");
 				setOption("BlackBackground", true);
 				selectWindow(""+mark+""+title1+"");
 				run("Enhance Contrast", "saturated=0.35");
@@ -209,8 +268,8 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 				}
 				selectWindow(titleD);
 				run("Convert to Mask", ""+specROI+" background=Dark calculate black");
-				print("masked");
-				run("Analyze Particles...", "size=1-"+specS+" include add stack");
+//				waitForUser("masked");
+				run("Analyze Particles...", "size=0.5-"+specS+" include add stack");
 				despecROI= parseInt(roiManager("count"));
 					selectWindow(""+mark+""+title1+"");
 //					wait(500);
@@ -228,7 +287,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 					//	if(delR==false){
 					//		roiManager("delete");
 					//		delROI++;
-					//		depsecnROI = (roiManager("count"));
+					//		despecnROI = (roiManager("count"));
 					//		i--;
 					//	}
 				//}

@@ -256,7 +256,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 				run("Duplicate...", "duplicate");
 				titleD= getTitle;
 				selectWindow(titleD);
-				print("deleting specles only in "+tumROI+" tumor areas");
+				print("deleting speckels in "+tumROI+" tumor areas");
 				for (i=0; i<tumROI; i++) {
 					roiManager("deselect");
 					roiManager("Show None");
@@ -264,24 +264,30 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 					run("Clear Outside", "slice");
 					roiManager("deselect");
 					roiManager("Show None");
-//					wait(500);
 				}
+//				print("tumROI="+tumROI+"");
 				selectWindow(titleD);
 				run("Convert to Mask", ""+specROI+" background=Dark calculate black");
 //				waitForUser("masked");
 				run("Analyze Particles...", "size=0.5-"+specS+" include add stack");
 				despecROI= parseInt(roiManager("count"));
+//				print("despecROI="+despecROI+"");
 					selectWindow(""+mark+""+title1+"");
 //					wait(500);
 					for (i = tumROI+1; i < despecROI; i++) {
-						roiManager("Show None");
-						roiManager("select", i);
-						run("Enlarge...", "enlarge="+specENL+"");
-						run("Clear", "slice");
-						roiManager("select", i);
-						roiManager("delete");
-						despecROI--;
+						ROIco=(roiManager("count"));
+						while(i<ROIco){
+							roiManager("Show None");
+							roiManager("select", i);
+							run("Enlarge...", "enlarge="+specENL+"");
+							run("Clear", "slice");
+							roiManager("select", i);
+							roiManager("delete");
+							ROIco=(roiManager("count"));
+						}
+//						despecROI--;
 					}
+//					waitForUser("check ROIS");
 						//second round with different tresholding???			
 					//delR = getBoolean("Use selection for analysis?", "Yes [Y-button]", "No, delete [N-button]");
 					//	if(delR==false){
@@ -291,7 +297,7 @@ macro "3D affinity marker quantification on xenocraft tumors in zebrafish" {
 					//		i--;
 					//	}
 				//}
-				print("deleted "+despecaROI+" specles in "+tumROI+" areas");
+				print("deleted "+despecROI+" specles in "+tumROI+" areas");
 			}
 			roiManager("Select", newArray());
 			run("Enhance Contrast", "saturated=0.35");
